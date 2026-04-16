@@ -36,7 +36,7 @@ const DEFAULT_FAQ = [
 ];
 
 // ==================== CHANGE YOUR PASSWORD HERE ====================
-const ADMIN_PASSWORD = I will become the best 1999
+const ADMIN_PASSWORD = "I will become the best 1999";
 // ===================================================================
 
 const CATEGORIES = ["All", "Characters", "Dragons", "Monsters", "Units", "Terrain"];
