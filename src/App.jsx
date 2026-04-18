@@ -36,11 +36,20 @@ const DEFAULT_FAQ = [
 ];
 
 // ==================== CHANGE YOUR PASSWORD HERE ====================
-const ADMIN_PASSWORD = "Banana990717";
+const ADMIN_PASSWORD = "Banana990717@";
 // ===================================================================
 
-const CATEGORIES = ["All", "Characters", "Dragons", "Monsters", "Units", "Terrain"];
-const CATEGORIES_EDIT = ["Characters", "Dragons", "Monsters", "Units", "Terrain"];
+// ==================== PAYPAL CONFIG ====================
+// Replace this with your real PayPal Client ID from:
+// https://developer.paypal.com/dashboard/applications
+// Use your LIVE client ID when ready to accept real payments.
+// The one below is the PayPal SANDBOX (test) ID — no real money.
+const PAYPAL_CLIENT_ID = "Af8uztf1PUW-IwWgMD_zk3Xt81NzInure40RGmFtr9D4IKH65MULCq-QxLrRWdpZx-JqVzTfGQg62AU6";
+// Set to "AUD" for Australian dollars
+const CURRENCY = "AUD";
+// =======================================================
+
+const DEFAULT_CATEGORIES = ["Characters", "Dragons", "Monsters", "Units", "Terrain"];
 const DETAIL_LEVELS = ["Standard", "High", "Ultra"];
 const BADGE_OPTIONS = ["", "Best Seller", "New", "Popular", "Limited"];
 
@@ -51,15 +60,13 @@ const REVIEWS = [
 ];
 
 const loadFromStorage = (key, fallback) => {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : fallback;
-  } catch { return fallback; }
+  try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : fallback; } catch { return fallback; }
 };
 const saveToStorage = (key, data) => {
   try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
 };
 
+// ==================== ICONS ====================
 const CartIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>;
 const StarIcon = ({ filled }) => <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
 const XIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
@@ -71,9 +78,10 @@ const TrashIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="no
 const LockIcon = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
 const LogOutIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
 
+// ==================== PLACEHOLDER ====================
 const MiniPlaceholder = ({ product }) => {
   const hues = { Dragons: 4, Characters: 230, Monsters: 270, Units: 155, Terrain: 28 };
-  const hue = hues[product.category] || 200;
+  const hue = hues[product.category] || ((product.category || "").charCodeAt(0) * 7) % 360;
 
   if (product.image) {
     return (
@@ -87,16 +95,8 @@ const MiniPlaceholder = ({ product }) => {
   return (
     <div style={{ width: "100%", aspectRatio: "1", background: `linear-gradient(145deg, hsl(${hue}, 30%, 94%), hsl(${hue}, 25%, 88%))`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", borderRadius: "6px 6px 0 0" }}>
       <div style={{ position: "absolute", width: "70%", height: "70%", borderRadius: "50%", background: `radial-gradient(circle, hsla(${hue}, 50%, 70%, 0.2), transparent 70%)`, top: "15%", left: "15%", filter: "blur(25px)" }}/>
-      <svg width="100%" height="100%" viewBox="0 0 200 200" style={{ position: "absolute", opacity: 0.06 }}>
-        {Array.from({length: 10}).map((_, i) => (<line key={`h${i}`} x1="0" y1={i*20+20} x2="200" y2={i*20+20} stroke={`hsl(${hue},30%,50%)`} strokeWidth="0.5"/>))}
-        {Array.from({length: 10}).map((_, i) => (<line key={`v${i}`} x1={i*20+20} y1="0" x2={i*20+20} y2="200" stroke={`hsl(${hue},30%,50%)`} strokeWidth="0.5"/>))}
-      </svg>
       <svg width="45%" height="45%" viewBox="0 0 100 100" style={{ position: "relative", zIndex: 1, opacity: 0.35 }}>
-        {product.category === "Dragons" && (<path d="M50 15 L65 35 L80 30 L75 50 L90 55 L70 65 L75 85 L50 75 L25 85 L30 65 L10 55 L25 50 L20 30 L35 35 Z" fill={`hsl(${hue},45%,45%)`}/>)}
-        {product.category === "Characters" && (<g fill={`hsl(${hue},45%,45%)`}><circle cx="50" cy="25" r="10"/><rect x="40" y="35" width="20" height="30" rx="3"/><rect x="35" y="65" width="10" height="22" rx="2"/><rect x="55" y="65" width="10" height="22" rx="2"/></g>)}
-        {product.category === "Monsters" && (<path d="M50 10 Q80 20 85 50 Q90 80 50 90 Q10 80 15 50 Q20 20 50 10 M35 40 L30 25 M65 40 L70 25 M30 60 Q50 80 70 60" fill={`hsl(${hue},45%,45%)`} fillRule="evenodd"/>)}
-        {product.category === "Units" && (<g fill={`hsl(${hue},45%,45%)`}>{[30,50,70].map((x,i) => <g key={i}><circle cx={x} cy={30+i*5} r="6"/><rect x={x-5} y={36+i*5} width="10" height="15" rx="2"/></g>)}</g>)}
-        {product.category === "Terrain" && (<g fill={`hsl(${hue},45%,45%)`}><rect x="15" y="50" width="70" height="35" rx="2"/><rect x="20" y="30" width="15" height="20" rx="1"/><rect x="55" y="35" width="20" height="15" rx="1"/><rect x="38" y="40" width="12" height="10" rx="1"/></g>)}
+        <g fill={`hsl(${hue},45%,45%)`}><circle cx="50" cy="25" r="10"/><rect x="40" y="35" width="20" height="30" rx="3"/><rect x="35" y="65" width="10" height="22" rx="2"/><rect x="55" y="65" width="10" height="22" rx="2"/></g>
       </svg>
       <div style={{ position: "absolute", bottom: 10, right: 10, background: "rgba(255,255,255,0.8)", padding: "3px 8px", borderRadius: "4px", fontSize: "11px", color: `hsl(${hue},40%,40%)`, fontFamily: "'DM Mono', monospace", letterSpacing: "0.5px", backdropFilter: "blur(4px)" }}>{product.scale}</div>
     </div>
@@ -105,18 +105,53 @@ const MiniPlaceholder = ({ product }) => {
 
 const Badge = ({ text }) => {
   if (!text) return null;
-  const colors = {
-    "Best Seller": { bg: "#fef3c7", color: "#92400e", border: "#fde68a" },
-    "New": { bg: "#dcfce7", color: "#166534", border: "#bbf7d0" },
-    "Popular": { bg: "#dbeafe", color: "#1e40af", border: "#bfdbfe" },
-    "Limited": { bg: "#fee2e2", color: "#991b1b", border: "#fecaca" },
-  };
+  const colors = { "Best Seller": { bg: "#fef3c7", color: "#92400e", border: "#fde68a" }, "New": { bg: "#dcfce7", color: "#166534", border: "#bbf7d0" }, "Popular": { bg: "#dbeafe", color: "#1e40af", border: "#bfdbfe" }, "Limited": { bg: "#fee2e2", color: "#991b1b", border: "#fecaca" } };
   const c = colors[text] || colors["New"];
-  return (
-    <span style={{ position: "absolute", top: 10, left: 10, padding: "3px 10px", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", background: c.bg, color: c.color, border: `1px solid ${c.border}`, borderRadius: "4px", fontFamily: "'DM Mono', monospace", zIndex: 2 }}>{text}</span>
-  );
+  return <span style={{ position: "absolute", top: 10, left: 10, padding: "3px 10px", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", background: c.bg, color: c.color, border: `1px solid ${c.border}`, borderRadius: "4px", fontFamily: "'DM Mono', monospace", zIndex: 2 }}>{text}</span>;
 };
 
+// ==================== PAYPAL BUTTON ====================
+function PayPalButton({ total, currency, onSuccess, onError }) {
+  const containerRef = useRef(null);
+  const [sdkReady, setSdkReady] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (window.paypal) { setSdkReady(true); setLoading(false); return; }
+    const existingScript = document.querySelector('script[src*="paypal.com/sdk"]');
+    if (existingScript) { existingScript.addEventListener("load", () => { setSdkReady(true); setLoading(false); }); return; }
+    const script = document.createElement("script");
+    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=${currency}`;
+    script.async = true;
+    script.onload = () => { setSdkReady(true); setLoading(false); };
+    script.onerror = () => { setLoading(false); onError("Failed to load PayPal. Check your internet connection."); };
+    document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    if (!sdkReady || !containerRef.current || !window.paypal) return;
+    containerRef.current.innerHTML = "";
+    window.paypal.Buttons({
+      style: { layout: "vertical", color: "gold", shape: "rect", label: "paypal", height: 45 },
+      createOrder: (data, actions) => actions.order.create({
+        purchase_units: [{ amount: { value: total.toFixed(2), currency_code: currency } }]
+      }),
+      onApprove: async (data, actions) => {
+        try {
+          const details = await actions.order.capture();
+          onSuccess(details);
+        } catch (err) { onError("Payment capture failed. Please contact us."); }
+      },
+      onError: (err) => { onError("PayPal encountered an error. Please try again."); },
+      onCancel: () => {}
+    }).render(containerRef.current);
+  }, [sdkReady, total]);
+
+  if (loading) return <div style={{ textAlign: "center", padding: 20, color: "#a8a29e", fontFamily: "'DM Mono', monospace", fontSize: 12 }}>Loading PayPal...</div>;
+  return <div ref={containerRef} style={{ marginTop: 16 }}/>;
+}
+
+// ==================== MAIN APP ====================
 export default function MiniatureShop() {
   const [route, setRoute] = useState(typeof window !== "undefined" && window.location.hash === "#admin" ? "admin" : "shop");
 
@@ -130,20 +165,23 @@ export default function MiniatureShop() {
   const [siteText, setSiteText] = useState(() => loadFromStorage("fr_siteText", DEFAULT_SITE_TEXT));
   const [faqs, setFaqs] = useState(() => loadFromStorage("fr_faqs", DEFAULT_FAQ));
   const [orders, setOrders] = useState(() => loadFromStorage("fr_orders", []));
+  const [categories, setCategories] = useState(() => loadFromStorage("fr_categories", DEFAULT_CATEGORIES));
 
   useEffect(() => saveToStorage("fr_products", products), [products]);
   useEffect(() => saveToStorage("fr_siteText", siteText), [siteText]);
   useEffect(() => saveToStorage("fr_faqs", faqs), [faqs]);
   useEffect(() => saveToStorage("fr_orders", orders), [orders]);
+  useEffect(() => saveToStorage("fr_categories", categories), [categories]);
 
   if (route === "admin") {
-    return <AdminPanel products={products} setProducts={setProducts} siteText={siteText} setSiteText={setSiteText} faqs={faqs} setFaqs={setFaqs} orders={orders} setOrders={setOrders}/>;
+    return <AdminPanel products={products} setProducts={setProducts} siteText={siteText} setSiteText={setSiteText} faqs={faqs} setFaqs={setFaqs} orders={orders} setOrders={setOrders} categories={categories} setCategories={setCategories}/>;
   }
 
-  return <Shop products={products} siteText={siteText} faqs={faqs} onOrder={(order) => setOrders(prev => [order, ...prev])}/>;
+  return <Shop products={products} siteText={siteText} faqs={faqs} categories={categories} onOrder={(order) => setOrders(prev => [order, ...prev])}/>;
 }
 
-function Shop({ products, siteText, faqs, onOrder }) {
+// ==================== SHOP ====================
+function Shop({ products, siteText, faqs, categories, onOrder }) {
   const [cart, setCart] = useState([]);
   const [category, setCategory] = useState("All");
   const [cartOpen, setCartOpen] = useState(false);
@@ -153,6 +191,7 @@ function Shop({ products, siteText, faqs, onOrder }) {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const toastTimeout = useRef(null);
 
+  const categoryList = ["All", ...categories];
   const filtered = category === "All" ? products : products.filter(p => p.category === category);
   const cartCount = cart.reduce((sum, i) => sum + i.qty, 0);
   const cartTotal = cart.reduce((sum, i) => sum + i.qty * i.price, 0);
@@ -173,30 +212,35 @@ function Shop({ products, siteText, faqs, onOrder }) {
   const showToast = (msg) => {
     setToast(msg);
     if (toastTimeout.current) clearTimeout(toastTimeout.current);
-    toastTimeout.current = setTimeout(() => setToast(null), 2200);
+    toastTimeout.current = setTimeout(() => setToast(null), 2500);
   };
 
-  const handleCheckout = (customerInfo) => {
-    const order = { id: Date.now(), date: new Date().toISOString(), customer: customerInfo, items: cart, total: cartTotal, status: "pending" };
+  const handleCheckoutComplete = (customerInfo, paypalDetails) => {
+    const order = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      customer: customerInfo,
+      items: cart,
+      total: cartTotal,
+      status: paypalDetails ? "paid" : "pending",
+      paypal: paypalDetails ? { id: paypalDetails.id, payer: paypalDetails.payer?.email_address || "unknown" } : null
+    };
     onOrder(order);
     setCart([]);
     setCheckoutOpen(false);
     setCartOpen(false);
-    showToast("Order placed! Check your email for confirmation.");
+    showToast(paypalDetails ? "Payment successful! Order confirmed." : "Order placed!");
   };
 
   return (
     <div style={{ minHeight: "100vh", background: "#fafaf9", color: "#1a1a2e", fontFamily: "'Playfair Display', Georgia, serif" }}>
       <style>{globalStyles}</style>
 
+      {/* NAV */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(250,250,249,0.9)", backdropFilter: "blur(16px)", borderBottom: "1px solid #e7e5e4" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 68 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <svg width="30" height="30" viewBox="0 0 32 32">
-              <polygon points="16,2 28,10 28,22 16,30 4,22 4,10" fill="none" stroke="#1a1a2e" strokeWidth="1.5"/>
-              <polygon points="16,8 22,12 22,20 16,24 10,20 10,12" fill="#c2410c" opacity="0.2"/>
-              <circle cx="16" cy="16" r="3" fill="#c2410c"/>
-            </svg>
+            <svg width="30" height="30" viewBox="0 0 32 32"><polygon points="16,2 28,10 28,22 16,30 4,22 4,10" fill="none" stroke="#1a1a2e" strokeWidth="1.5"/><polygon points="16,8 22,12 22,20 16,24 10,20 10,12" fill="#c2410c" opacity="0.2"/><circle cx="16" cy="16" r="3" fill="#c2410c"/></svg>
             <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 800, fontSize: 21, color: "#1a1a2e", letterSpacing: "1px" }}>Forge & Resin</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
@@ -211,6 +255,7 @@ function Shop({ products, siteText, faqs, onOrder }) {
         </div>
       </nav>
 
+      {/* HERO */}
       {currentSection === "shop" && (
         <header style={{ position: "relative", overflow: "hidden", padding: "80px 24px 72px", textAlign: "center", background: "#fff" }}>
           <div style={{ position: "absolute", inset: 0, opacity: 0.35, backgroundImage: "radial-gradient(circle, #d6d3d1 1px, transparent 1px)", backgroundSize: "24px 24px" }}/>
@@ -218,8 +263,7 @@ function Shop({ products, siteText, faqs, onOrder }) {
           <div className="fade-up" style={{ position: "relative", zIndex: 1 }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "4px", color: "#c2410c", textTransform: "uppercase", marginBottom: 16, fontWeight: 500 }}>{siteText.heroTagline}</div>
             <h1 style={{ fontSize: "clamp(38px, 6vw, 68px)", fontWeight: 800, lineHeight: 1.08, color: "#1a1a2e", marginBottom: 18 }}>
-              {siteText.heroTitleLine1}<br/>
-              <span style={{ color: "#c2410c", fontStyle: "italic" }}>{siteText.heroTitleLine2}</span>
+              {siteText.heroTitleLine1}<br/><span style={{ color: "#c2410c", fontStyle: "italic" }}>{siteText.heroTitleLine2}</span>
             </h1>
             <p style={{ fontSize: 18, color: "#a8a29e", maxWidth: 480, margin: "0 auto 36px", fontStyle: "italic", lineHeight: 1.6 }}>{siteText.heroSubtitle}</p>
             <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
@@ -234,27 +278,22 @@ function Shop({ products, siteText, faqs, onOrder }) {
         </header>
       )}
 
+      {/* MAIN */}
       <main style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" }}>
         {currentSection === "shop" && (
           <>
             <div style={{ display: "flex", gap: 8, marginBottom: 40, flexWrap: "wrap", borderBottom: "1px solid #e7e5e4", paddingBottom: 20 }}>
-              {CATEGORIES.map(c => (
+              {categoryList.map(c => (
                 <button key={c} className="cat-btn" onClick={() => setCategory(c)} style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "1.2px", textTransform: "uppercase", padding: "8px 18px", borderRadius: 6, color: category === c ? "#fff" : "#78716c", background: category === c ? "#1a1a2e" : "#f5f5f4", fontWeight: 500 }}>{c}</button>
               ))}
             </div>
-
             {filtered.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "60px 0", color: "#a8a29e" }}>
-                <p style={{ fontSize: 18, fontStyle: "italic" }}>No products in this category yet.</p>
-              </div>
+              <div style={{ textAlign: "center", padding: "60px 0", color: "#a8a29e" }}><p style={{ fontSize: 18, fontStyle: "italic" }}>No products in this category yet.</p></div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(264px, 1fr))", gap: 24 }}>
                 {filtered.map((product, idx) => (
                   <div key={product.id} className="product-card fade-up" style={{ background: "#fff", borderRadius: 10, overflow: "hidden", border: "1px solid #e7e5e4", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", animationDelay: `${idx * 0.07}s` }} onClick={() => setSelectedProduct(product)}>
-                    <div style={{ position: "relative" }}>
-                      <Badge text={product.badge}/>
-                      <MiniPlaceholder product={product}/>
-                    </div>
+                    <div style={{ position: "relative" }}><Badge text={product.badge}/><MiniPlaceholder product={product}/></div>
                     <div style={{ padding: "16px 20px 20px" }}>
                       <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#c2410c", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 6, fontWeight: 500 }}>{product.category} · {product.detail} Detail</div>
                       <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, color: "#1a1a2e" }}>{product.name}</h3>
@@ -268,16 +307,13 @@ function Shop({ products, siteText, faqs, onOrder }) {
                 ))}
               </div>
             )}
-
             <section style={{ marginTop: 80 }}>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "4px", color: "#c2410c", textTransform: "uppercase", marginBottom: 12, textAlign: "center", fontWeight: 500 }}>Customer Reviews</div>
               <h2 style={{ fontSize: 38, textAlign: "center", marginBottom: 40, fontWeight: 700 }}>What Hobbyists Say</h2>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
                 {REVIEWS.map((r, i) => (
                   <div key={i} style={{ padding: 28, background: "#fff", borderRadius: 10, border: "1px solid #e7e5e4", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-                    <div style={{ display: "flex", gap: 2, marginBottom: 14, color: "#c2410c" }}>
-                      {Array.from({length: 5}).map((_, j) => <StarIcon key={j} filled={j < r.rating}/>)}
-                    </div>
+                    <div style={{ display: "flex", gap: 2, marginBottom: 14, color: "#c2410c" }}>{Array.from({length: 5}).map((_, j) => <StarIcon key={j} filled={j < r.rating}/>)}</div>
                     <p style={{ fontSize: 16, lineHeight: 1.7, color: "#57534e", marginBottom: 14, fontStyle: "italic" }}>"{r.text}"</p>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#a8a29e", letterSpacing: "1px", fontWeight: 500 }}>— {r.name}</div>
                   </div>
@@ -286,19 +322,15 @@ function Shop({ products, siteText, faqs, onOrder }) {
             </section>
           </>
         )}
-
         {currentSection === "about" && (
           <div className="fade-up" style={{ maxWidth: 640, margin: "0 auto" }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "4px", color: "#c2410c", textTransform: "uppercase", marginBottom: 12, fontWeight: 500 }}>Our Story</div>
             <h2 style={{ fontSize: 44, marginBottom: 24, fontWeight: 700 }}>{siteText.aboutTitle}</h2>
             <div style={{ fontSize: 17, lineHeight: 1.9, color: "#78716c" }}>
-              <p style={{ marginBottom: 20 }}>{siteText.aboutP1}</p>
-              <p style={{ marginBottom: 20 }}>{siteText.aboutP2}</p>
-              <p>{siteText.aboutP3}</p>
+              <p style={{ marginBottom: 20 }}>{siteText.aboutP1}</p><p style={{ marginBottom: 20 }}>{siteText.aboutP2}</p><p>{siteText.aboutP3}</p>
             </div>
           </div>
         )}
-
         {currentSection === "faq" && (
           <div className="fade-up" style={{ maxWidth: 640, margin: "0 auto" }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "4px", color: "#c2410c", textTransform: "uppercase", marginBottom: 12, fontWeight: 500 }}>FAQ</div>
@@ -317,6 +349,7 @@ function Shop({ products, siteText, faqs, onOrder }) {
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#a8a29e", letterSpacing: "1px" }}>{siteText.footerText}</div>
       </footer>
 
+      {/* CART DRAWER */}
       {cartOpen && (
         <>
           <div className="overlay" onClick={() => setCartOpen(false)} style={{ animation: "fadeIn 0.2s ease" }}/>
@@ -333,9 +366,7 @@ function Shop({ products, siteText, faqs, onOrder }) {
                 </div>
               ) : cart.map(item => (
                 <div key={item.id} style={{ display: "flex", gap: 14, padding: "16px 0", borderBottom: "1px solid #f5f5f4" }}>
-                  <div style={{ width: 64, height: 64, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
-                    <MiniPlaceholder product={item}/>
-                  </div>
+                  <div style={{ width: 64, height: 64, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}><MiniPlaceholder product={item}/></div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{item.name}</div>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#c2410c", fontWeight: 500 }}>${(item.price * item.qty).toFixed(2)}</div>
@@ -361,15 +392,16 @@ function Shop({ products, siteText, faqs, onOrder }) {
         </>
       )}
 
-      {checkoutOpen && <CheckoutModal total={cartTotal} onClose={() => setCheckoutOpen(false)} onSubmit={handleCheckout}/>}
+      {/* CHECKOUT */}
+      {checkoutOpen && <CheckoutModal total={cartTotal} cart={cart} onClose={() => setCheckoutOpen(false)} onComplete={handleCheckoutComplete}/>}
 
+      {/* PRODUCT DETAIL */}
       {selectedProduct && (
         <>
           <div className="overlay" onClick={() => setSelectedProduct(null)}/>
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "min(600px, 92vw)", maxHeight: "85vh", overflowY: "auto", background: "#fff", borderRadius: 12, zIndex: 101, border: "1px solid #e7e5e4", animation: "fadeUp 0.3s ease", boxShadow: "0 25px 60px rgba(0,0,0,0.1)" }}>
             <div style={{ position: "relative" }}>
-              <Badge text={selectedProduct.badge}/>
-              <MiniPlaceholder product={selectedProduct}/>
+              <Badge text={selectedProduct.badge}/><MiniPlaceholder product={selectedProduct}/>
               <button onClick={() => setSelectedProduct(null)} style={{ position: "absolute", top: 10, right: 10, background: "rgba(255,255,255,0.85)", border: "none", color: "#78716c", cursor: "pointer", borderRadius: 6, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}><XIcon/></button>
             </div>
             <div style={{ padding: "24px 28px 28px" }}>
@@ -385,37 +417,85 @@ function Shop({ products, siteText, faqs, onOrder }) {
         </>
       )}
 
-      {toast && (
-        <div className="toast-anim" style={{ position: "fixed", bottom: 24, left: "50%", background: "#1a1a2e", color: "#fff", padding: "12px 28px", borderRadius: 8, fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 500, letterSpacing: "0.5px", zIndex: 200, boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}>{toast}</div>
-      )}
+      {toast && <div className="toast-anim" style={{ position: "fixed", bottom: 24, left: "50%", background: "#1a1a2e", color: "#fff", padding: "12px 28px", borderRadius: 8, fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 500, letterSpacing: "0.5px", zIndex: 200, boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}>{toast}</div>}
     </div>
   );
 }
 
-function CheckoutModal({ total, onClose, onSubmit }) {
+// ==================== CHECKOUT MODAL (with PayPal) ====================
+function CheckoutModal({ total, cart, onClose, onComplete }) {
   const [info, setInfo] = useState({ name: "", email: "", address: "", notes: "" });
-  const canSubmit = info.name && info.email && info.address;
+  const [step, setStep] = useState("info"); // "info" → "pay" → "done"
+  const [payError, setPayError] = useState("");
+  const canProceed = info.name && info.email && info.address;
+
+  const handlePayPalSuccess = (details) => {
+    setStep("done");
+    onComplete(info, details);
+  };
 
   return (
     <>
       <div className="overlay" onClick={onClose}/>
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "min(500px, 92vw)", maxHeight: "85vh", overflowY: "auto", background: "#fff", borderRadius: 12, zIndex: 102, border: "1px solid #e7e5e4", animation: "fadeUp 0.3s ease", boxShadow: "0 25px 60px rgba(0,0,0,0.1)", padding: 28 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h2 style={{ fontSize: 26, fontWeight: 700, fontFamily: "'Playfair Display', serif" }}>Checkout</h2>
+          <h2 style={{ fontSize: 26, fontWeight: 700, fontFamily: "'Playfair Display', serif" }}>{step === "info" ? "Checkout" : step === "pay" ? "Payment" : "Order Confirmed!"}</h2>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "#a8a29e", cursor: "pointer" }}><XIcon/></button>
         </div>
-        <p style={{ fontSize: 13, color: "#a8a29e", marginBottom: 20, fontFamily: "'DM Mono', monospace" }}>Note: This is a demo checkout — no payment is actually processed.</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <InputField label="Full Name" value={info.name} onChange={(v) => setInfo({...info, name: v})}/>
-          <InputField label="Email" type="email" value={info.email} onChange={(v) => setInfo({...info, email: v})}/>
-          <InputField label="Shipping Address" value={info.address} onChange={(v) => setInfo({...info, address: v})} multiline/>
-          <InputField label="Order Notes (optional)" value={info.notes} onChange={(v) => setInfo({...info, notes: v})} multiline/>
-        </div>
-        <div style={{ marginTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0", borderTop: "1px solid #e7e5e4", borderBottom: "1px solid #e7e5e4", fontFamily: "'DM Mono', monospace" }}>
-          <span style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "1.5px", color: "#a8a29e" }}>Total</span>
-          <span style={{ fontSize: 24, fontWeight: 500 }}>${total.toFixed(2)}</span>
-        </div>
-        <button onClick={() => canSubmit && onSubmit(info)} disabled={!canSubmit} style={{ width: "100%", marginTop: 20, padding: "14px", background: canSubmit ? "#c2410c" : "#d6d3d1", color: "#fff", border: "none", borderRadius: 8, fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", cursor: canSubmit ? "pointer" : "not-allowed" }}>Place Order</button>
+
+        {step === "info" && (
+          <>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <InputField label="Full Name" value={info.name} onChange={(v) => setInfo({...info, name: v})}/>
+              <InputField label="Email" type="email" value={info.email} onChange={(v) => setInfo({...info, email: v})}/>
+              <InputField label="Shipping Address" value={info.address} onChange={(v) => setInfo({...info, address: v})} multiline/>
+              <InputField label="Order Notes (optional)" value={info.notes} onChange={(v) => setInfo({...info, notes: v})} multiline/>
+            </div>
+            <div style={{ marginTop: 20, padding: "14px 0", borderTop: "1px solid #e7e5e4" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#a8a29e", marginBottom: 8, textTransform: "uppercase", letterSpacing: "1.5px" }}>Order Summary</div>
+              {cart.map(item => (
+                <div key={item.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 14, padding: "4px 0", fontFamily: "'DM Mono', monospace" }}>
+                  <span>{item.name} × {item.qty}</span>
+                  <span>${(item.price * item.qty).toFixed(2)}</span>
+                </div>
+              ))}
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, padding: "12px 0", borderTop: "1px solid #e7e5e4", fontFamily: "'DM Mono', monospace" }}>
+                <span style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "1.5px", color: "#a8a29e" }}>Total</span>
+                <span style={{ fontSize: 24, fontWeight: 500 }}>${total.toFixed(2)}</span>
+              </div>
+            </div>
+            <button onClick={() => canProceed && setStep("pay")} disabled={!canProceed} style={{ width: "100%", marginTop: 16, padding: "14px", background: canProceed ? "#c2410c" : "#d6d3d1", color: "#fff", border: "none", borderRadius: 8, fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", cursor: canProceed ? "pointer" : "not-allowed" }}>Continue to Payment</button>
+          </>
+        )}
+
+        {step === "pay" && (
+          <>
+            <p style={{ fontSize: 14, color: "#78716c", marginBottom: 8 }}>
+              Shipping to: <strong style={{ color: "#1a1a2e" }}>{info.name}</strong> — {info.address}
+            </p>
+            <button onClick={() => setStep("info")} style={{ background: "none", border: "none", color: "#c2410c", fontFamily: "'DM Mono', monospace", fontSize: 11, cursor: "pointer", marginBottom: 16, padding: 0, textDecoration: "underline" }}>← Edit details</button>
+            <div style={{ padding: "16px 0", borderTop: "1px solid #e7e5e4", borderBottom: "1px solid #e7e5e4", marginBottom: 16, display: "flex", justifyContent: "space-between", fontFamily: "'DM Mono', monospace" }}>
+              <span style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "1.5px", color: "#a8a29e" }}>Total</span>
+              <span style={{ fontSize: 24, fontWeight: 500 }}>${total.toFixed(2)}</span>
+            </div>
+            {PAYPAL_CLIENT_ID === "sb" && (
+              <div style={{ background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 6, padding: 12, marginBottom: 12, fontSize: 12, fontFamily: "'DM Mono', monospace", color: "#92400e" }}>
+                PayPal is in TEST mode. No real money will be charged. To accept real payments, add your PayPal Client ID in the code.
+              </div>
+            )}
+            {payError && <div style={{ color: "#ef4444", fontSize: 13, fontFamily: "'DM Mono', monospace", marginBottom: 12 }}>{payError}</div>}
+            <PayPalButton total={total} currency={CURRENCY} onSuccess={handlePayPalSuccess} onError={(msg) => setPayError(msg)}/>
+          </>
+        )}
+
+        {step === "done" && (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>✓</div>
+            <p style={{ fontSize: 17, color: "#1a1a2e", fontWeight: 600, marginBottom: 8 }}>Thank you for your order!</p>
+            <p style={{ fontSize: 14, color: "#78716c", fontFamily: "'DM Mono', monospace", marginBottom: 20 }}>A confirmation will be sent to {info.email}</p>
+            <button onClick={onClose} style={{ padding: "12px 30px", background: "#c2410c", color: "#fff", border: "none", borderRadius: 8, fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer" }}>Close</button>
+          </div>
+        )}
       </div>
     </>
   );
@@ -430,13 +510,23 @@ function InputField({ label, value, onChange, type = "text", multiline }) {
     </label>
   );
 }
+function SelectField({ label, value, options, onChange, displayEmpty }) {
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#78716c", fontWeight: 500 }}>{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} style={{ padding: "10px 14px", border: "1px solid #e7e5e4", borderRadius: 6, fontSize: 15, fontFamily: "'Playfair Display', serif", background: "#fafaf9", color: "#1a1a2e", outline: "none", cursor: "pointer" }}>
+        {options.map(o => <option key={o} value={o}>{o === "" ? (displayEmpty || "—") : o}</option>)}
+      </select>
+    </label>
+  );
+}
 
-function AdminPanel({ products, setProducts, siteText, setSiteText, faqs, setFaqs, orders, setOrders }) {
+// ==================== ADMIN PANEL ====================
+function AdminPanel({ products, setProducts, siteText, setSiteText, faqs, setFaqs, orders, setOrders, categories, setCategories }) {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem("fr_admin_auth") === "yes");
   const [tab, setTab] = useState("products");
 
   if (!authed) return <LoginScreen onSuccess={() => { sessionStorage.setItem("fr_admin_auth", "yes"); setAuthed(true); }}/>;
-
   const logout = () => { sessionStorage.removeItem("fr_admin_auth"); setAuthed(false); };
 
   return (
@@ -444,30 +534,24 @@ function AdminPanel({ products, setProducts, siteText, setSiteText, faqs, setFaq
       <style>{globalStyles}</style>
       <nav style={{ background: "#1a1a2e", color: "#fff", padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <svg width="24" height="24" viewBox="0 0 32 32">
-            <polygon points="16,2 28,10 28,22 16,30 4,22 4,10" fill="none" stroke="#c2410c" strokeWidth="1.5"/>
-            <circle cx="16" cy="16" r="3" fill="#c2410c"/>
-          </svg>
-          <span style={{ fontWeight: 700, fontSize: 18, fontFamily: "'Playfair Display', serif" }}>Admin Panel</span>
+          <svg width="24" height="24" viewBox="0 0 32 32"><polygon points="16,2 28,10 28,22 16,30 4,22 4,10" fill="none" stroke="#c2410c" strokeWidth="1.5"/><circle cx="16" cy="16" r="3" fill="#c2410c"/></svg>
+          <span style={{ fontWeight: 700, fontSize: 18 }}>Admin Panel</span>
           <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#888", letterSpacing: "1.5px", textTransform: "uppercase", marginLeft: 8 }}>Forge & Resin</span>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
           <a href="#" onClick={(e) => { e.preventDefault(); window.location.hash = ""; window.location.reload(); }} style={{ color: "#a8a29e", textDecoration: "none", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", padding: "6px 12px" }}>View Site</a>
-          <button onClick={logout} style={{ background: "transparent", border: "1px solid #c2410c", color: "#c2410c", padding: "6px 14px", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "1px", textTransform: "uppercase" }}>
-            <LogOutIcon/> Logout
-          </button>
+          <button onClick={logout} style={{ background: "transparent", border: "1px solid #c2410c", color: "#c2410c", padding: "6px 14px", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "1px", textTransform: "uppercase" }}><LogOutIcon/> Logout</button>
         </div>
       </nav>
-
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px" }}>
         <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid #e7e5e4", flexWrap: "wrap" }}>
-          {[{ id: "products", label: "Products" }, { id: "orders", label: `Orders (${orders.length})` }, { id: "site", label: "Site Text" }, { id: "faqs", label: "FAQ" }].map(t => (
+          {[{ id: "products", label: "Products" }, { id: "orders", label: `Orders (${orders.length})` }, { id: "categories", label: "Categories" }, { id: "site", label: "Site Text" }, { id: "faqs", label: "FAQ" }].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "12px 20px", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "1.2px", textTransform: "uppercase", color: tab === t.id ? "#c2410c" : "#78716c", fontWeight: tab === t.id ? 600 : 400, borderBottom: tab === t.id ? "2px solid #c2410c" : "2px solid transparent", marginBottom: -1 }}>{t.label}</button>
           ))}
         </div>
-
-        {tab === "products" && <ProductsTab products={products} setProducts={setProducts}/>}
+        {tab === "products" && <ProductsTab products={products} setProducts={setProducts} categories={categories}/>}
         {tab === "orders" && <OrdersTab orders={orders} setOrders={setOrders}/>}
+        {tab === "categories" && <CategoriesTab categories={categories} setCategories={setCategories} products={products} setProducts={setProducts}/>}
         {tab === "site" && <SiteTextTab siteText={siteText} setSiteText={setSiteText}/>}
         {tab === "faqs" && <FaqsTab faqs={faqs} setFaqs={setFaqs}/>}
       </div>
@@ -478,19 +562,12 @@ function AdminPanel({ products, setProducts, siteText, setSiteText, faqs, setFaq
 function LoginScreen({ onSuccess }) {
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
-
-  const tryLogin = () => {
-    if (pw === ADMIN_PASSWORD) onSuccess();
-    else setErr("Incorrect password");
-  };
-
+  const tryLogin = () => { if (pw === ADMIN_PASSWORD) onSuccess(); else setErr("Incorrect password"); };
   return (
     <div style={{ minHeight: "100vh", background: "#fafaf9", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Playfair Display', serif" }}>
       <style>{globalStyles}</style>
       <div style={{ background: "#fff", padding: 40, borderRadius: 12, border: "1px solid #e7e5e4", boxShadow: "0 20px 50px rgba(0,0,0,0.06)", width: "min(400px, 100%)", textAlign: "center" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: "50%", background: "#fafaf9", color: "#c2410c", marginBottom: 20 }}>
-          <LockIcon/>
-        </div>
+        <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: "50%", background: "#fafaf9", color: "#c2410c", marginBottom: 20 }}><LockIcon/></div>
         <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Admin Access</h1>
         <p style={{ fontSize: 13, color: "#a8a29e", fontFamily: "'DM Mono', monospace", marginBottom: 24 }}>Enter password to continue</p>
         <input type="password" value={pw} onChange={(e) => { setPw(e.target.value); setErr(""); }} onKeyDown={(e) => e.key === "Enter" && tryLogin()} placeholder="Password" style={{ width: "100%", padding: "12px 16px", border: `1px solid ${err ? "#ef4444" : "#e7e5e4"}`, borderRadius: 8, fontSize: 16, background: "#fafaf9", outline: "none", marginBottom: 12, textAlign: "center", fontFamily: "'DM Mono', monospace", letterSpacing: "2px" }}/>
@@ -502,43 +579,41 @@ function LoginScreen({ onSuccess }) {
   );
 }
 
-function ProductsTab({ products, setProducts }) {
+// ==================== PRODUCTS TAB (with quick category dropdown) ====================
+function ProductsTab({ products, setProducts, categories }) {
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
   const save = (product) => {
     if (product.id) setProducts(prev => prev.map(p => p.id === product.id ? product : p));
-    else {
-      const newId = Math.max(0, ...products.map(p => p.id)) + 1;
-      setProducts(prev => [...prev, { ...product, id: newId }]);
-    }
+    else { const newId = Math.max(0, ...products.map(p => p.id)) + 1; setProducts(prev => [...prev, { ...product, id: newId }]); }
     setEditing(null); setShowForm(false);
   };
-
-  const del = (id) => {
-    if (confirm("Delete this product? This cannot be undone.")) setProducts(prev => prev.filter(p => p.id !== id));
-  };
+  const del = (id) => { if (confirm("Delete this product?")) setProducts(prev => prev.filter(p => p.id !== id)); };
+  const quickCategory = (id, cat) => { setProducts(prev => prev.map(p => p.id === id ? {...p, category: cat} : p)); };
+  const defaultCat = categories[0] || "Uncategorized";
 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
         <h2 style={{ fontSize: 24, fontWeight: 700 }}>Products ({products.length})</h2>
-        <button onClick={() => { setEditing({ name: "", category: "Characters", price: 0, scale: "32mm", detail: "High", badge: "", desc: "", image: "" }); setShowForm(true); }} style={{ background: "#c2410c", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" }}>+ Add Product</button>
+        <button onClick={() => { setEditing({ name: "", category: defaultCat, price: 0, scale: "32mm", detail: "High", badge: "", desc: "", image: "" }); setShowForm(true); }} style={{ background: "#c2410c", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" }}>+ Add Product</button>
       </div>
-
-      {showForm && <ProductForm initial={editing} onSave={save} onCancel={() => { setEditing(null); setShowForm(false); }}/>}
-
+      {showForm && <ProductForm initial={editing} categories={categories} onSave={save} onCancel={() => { setEditing(null); setShowForm(false); }}/>}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
         {products.map(p => (
           <div key={p.id} style={{ background: "#fff", border: "1px solid #e7e5e4", borderRadius: 8, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-            <div style={{ position: "relative", height: 180, overflow: "hidden" }}>
-              <Badge text={p.badge}/>
-              <MiniPlaceholder product={p}/>
-            </div>
+            <div style={{ position: "relative", height: 180, overflow: "hidden" }}><Badge text={p.badge}/><MiniPlaceholder product={p}/></div>
             <div style={{ padding: 16, flex: 1, display: "flex", flexDirection: "column" }}>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#c2410c", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 4 }}>{p.category}</div>
               <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{p.name}</h3>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, fontWeight: 500, marginBottom: 12 }}>${p.price.toFixed(2)}</div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, fontWeight: 500, marginBottom: 8 }}>${p.price.toFixed(2)}</div>
+              {/* QUICK CATEGORY DROPDOWN */}
+              <div style={{ marginBottom: 12 }}>
+                <select value={p.category} onChange={(e) => quickCategory(p.id, e.target.value)} style={{ padding: "5px 10px", border: "1px solid #e7e5e4", borderRadius: 4, fontFamily: "'DM Mono', monospace", fontSize: 11, background: "#fafaf9", color: "#c2410c", cursor: "pointer", fontWeight: 500 }}>
+                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  {!categories.includes(p.category) && <option value={p.category}>{p.category} (unlisted)</option>}
+                </select>
+              </div>
               <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
                 <button onClick={() => { setEditing(p); setShowForm(true); }} style={{ flex: 1, padding: "8px", background: "#fafaf9", border: "1px solid #e7e5e4", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#1a1a2e" }}><EditIcon/> Edit</button>
                 <button onClick={() => del(p.id)} style={{ flex: 1, padding: "8px", background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><TrashIcon/> Delete</button>
@@ -551,10 +626,9 @@ function ProductsTab({ products, setProducts }) {
   );
 }
 
-function ProductForm({ initial, onSave, onCancel }) {
+function ProductForm({ initial, categories, onSave, onCancel }) {
   const [form, setForm] = useState(initial);
   const canSave = form.name && form.desc && form.price >= 0;
-
   return (
     <>
       <div className="overlay" onClick={onCancel}/>
@@ -566,7 +640,7 @@ function ProductForm({ initial, onSave, onCancel }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <InputField label="Name" value={form.name} onChange={(v) => setForm({...form, name: v})}/>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <SelectField label="Category" value={form.category} options={CATEGORIES_EDIT} onChange={(v) => setForm({...form, category: v})}/>
+            <SelectField label="Category" value={form.category} options={categories} onChange={(v) => setForm({...form, category: v})}/>
             <InputField label="Price (AUD)" type="number" value={form.price} onChange={(v) => setForm({...form, price: parseFloat(v) || 0})}/>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -589,28 +663,16 @@ function ProductForm({ initial, onSave, onCancel }) {
   );
 }
 
-function SelectField({ label, value, options, onChange, displayEmpty }) {
-  return (
-    <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#78716c", fontWeight: 500 }}>{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)} style={{ padding: "10px 14px", border: "1px solid #e7e5e4", borderRadius: 6, fontSize: 15, fontFamily: "'Playfair Display', serif", background: "#fafaf9", color: "#1a1a2e", outline: "none", cursor: "pointer" }}>
-        {options.map(o => <option key={o} value={o}>{o === "" ? (displayEmpty || "—") : o}</option>)}
-      </select>
-    </label>
-  );
-}
-
+// ==================== ORDERS TAB ====================
 function OrdersTab({ orders, setOrders }) {
-  if (orders.length === 0) {
-    return (
-      <div style={{ textAlign: "center", padding: 60, background: "#fff", borderRadius: 12, border: "1px solid #e7e5e4" }}>
-        <h3 style={{ fontSize: 22, marginBottom: 8 }}>No orders yet</h3>
-        <p style={{ color: "#a8a29e", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>Orders will appear here when customers checkout.</p>
-      </div>
-    );
-  }
-
+  if (orders.length === 0) return (
+    <div style={{ textAlign: "center", padding: 60, background: "#fff", borderRadius: 12, border: "1px solid #e7e5e4" }}>
+      <h3 style={{ fontSize: 22, marginBottom: 8 }}>No orders yet</h3>
+      <p style={{ color: "#a8a29e", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>Orders will appear here when customers checkout.</p>
+    </div>
+  );
   const updateStatus = (id, status) => setOrders(prev => prev.map(o => o.id === id ? {...o, status} : o));
+  const statusColors = { pending: "#fef3c7", paid: "#dcfce7", shipped: "#dbeafe", delivered: "#f0fdf4", cancelled: "#fee2e2" };
 
   return (
     <div>
@@ -624,11 +686,13 @@ function OrdersTab({ orders, setOrders }) {
                 <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>{order.customer.name}</div>
                 <div style={{ fontSize: 13, color: "#78716c", fontFamily: "'DM Mono', monospace" }}>{order.customer.email}</div>
                 <div style={{ fontSize: 13, color: "#a8a29e", marginTop: 4, fontFamily: "'DM Mono', monospace" }}>{new Date(order.date).toLocaleString()}</div>
+                {order.paypal && <div style={{ fontSize: 11, color: "#166534", fontFamily: "'DM Mono', monospace", marginTop: 4, background: "#dcfce7", display: "inline-block", padding: "2px 8px", borderRadius: 4 }}>PayPal: {order.paypal.id}</div>}
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 22, fontWeight: 500 }}>${order.total.toFixed(2)}</div>
-                <select value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)} style={{ marginTop: 6, padding: "4px 10px", border: "1px solid #e7e5e4", borderRadius: 4, fontFamily: "'DM Mono', monospace", fontSize: 11, background: "#fafaf9", cursor: "pointer" }}>
+                <select value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)} style={{ marginTop: 6, padding: "4px 10px", border: "1px solid #e7e5e4", borderRadius: 4, fontFamily: "'DM Mono', monospace", fontSize: 11, background: statusColors[order.status] || "#fafaf9", cursor: "pointer" }}>
                   <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
                   <option value="shipped">Shipped</option>
                   <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
@@ -654,15 +718,92 @@ function OrdersTab({ orders, setOrders }) {
   );
 }
 
+// ==================== CATEGORIES TAB ====================
+function CategoriesTab({ categories, setCategories, products, setProducts }) {
+  const [newCat, setNewCat] = useState("");
+  const [editingIdx, setEditingIdx] = useState(null);
+  const [editValue, setEditValue] = useState("");
+
+  const add = () => {
+    const trimmed = newCat.trim();
+    if (!trimmed || categories.some(c => c.toLowerCase() === trimmed.toLowerCase())) return;
+    setCategories(prev => [...prev, trimmed]);
+    setNewCat("");
+  };
+  const startEdit = (idx) => { setEditingIdx(idx); setEditValue(categories[idx]); };
+  const saveEdit = (idx) => {
+    const trimmed = editValue.trim();
+    if (!trimmed) { setEditingIdx(null); return; }
+    const oldName = categories[idx];
+    if (trimmed === oldName) { setEditingIdx(null); return; }
+    if (categories.some((c, i) => i !== idx && c.toLowerCase() === trimmed.toLowerCase())) return;
+    setCategories(prev => prev.map((c, i) => i === idx ? trimmed : c));
+    setProducts(prev => prev.map(p => p.category === oldName ? { ...p, category: trimmed } : p));
+    setEditingIdx(null);
+  };
+  const remove = (idx) => {
+    const name = categories[idx];
+    const count = products.filter(p => p.category === name).length;
+    const fallback = categories.find(c => c !== name) || "Uncategorized";
+    if (!confirm(`Delete "${name}"?${count > 0 ? ` ${count} product(s) will move to "${fallback}".` : ""}`)) return;
+    setCategories(prev => prev.filter((_, i) => i !== idx));
+    setProducts(prev => prev.map(p => p.category === name ? { ...p, category: fallback } : p));
+  };
+  const move = (idx, dir) => {
+    const n = idx + dir;
+    if (n < 0 || n >= categories.length) return;
+    setCategories(prev => { const a = [...prev]; [a[idx], a[n]] = [a[n], a[idx]]; return a; });
+  };
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 20 }}>Categories ({categories.length})</h2>
+      <div style={{ background: "#fff", borderRadius: 8, padding: 20, border: "1px solid #e7e5e4", marginBottom: 16 }}>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#78716c", fontWeight: 500, marginBottom: 8 }}>Add New Category</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input value={newCat} onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="e.g. Vehicles" style={{ flex: 1, padding: "10px 14px", border: "1px solid #e7e5e4", borderRadius: 6, fontSize: 15, fontFamily: "'Playfair Display', serif", background: "#fafaf9", color: "#1a1a2e", outline: "none" }}/>
+          <button onClick={add} style={{ background: "#c2410c", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 12, fontWeight: 500, letterSpacing: "1px", textTransform: "uppercase" }}>+ Add</button>
+        </div>
+      </div>
+      <div style={{ background: "#fff", borderRadius: 8, border: "1px solid #e7e5e4", overflow: "hidden" }}>
+        {categories.length === 0 ? (
+          <div style={{ padding: 40, textAlign: "center", color: "#a8a29e", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>No categories yet.</div>
+        ) : categories.map((cat, i) => {
+          const count = products.filter(p => p.category === cat).length;
+          return (
+            <div key={cat + i} style={{ padding: "14px 20px", borderBottom: i < categories.length - 1 ? "1px solid #f5f5f4" : "none", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <button onClick={() => move(i, -1)} disabled={i === 0} style={{ background: "none", border: "none", cursor: i === 0 ? "not-allowed" : "pointer", padding: 2, opacity: i === 0 ? 0.3 : 0.6, fontSize: 12 }}>▲</button>
+                <button onClick={() => move(i, 1)} disabled={i === categories.length - 1} style={{ background: "none", border: "none", cursor: i === categories.length - 1 ? "not-allowed" : "pointer", padding: 2, opacity: i === categories.length - 1 ? 0.3 : 0.6, fontSize: 12 }}>▼</button>
+              </div>
+              {editingIdx === i ? (
+                <input autoFocus value={editValue} onChange={(e) => setEditValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") saveEdit(i); if (e.key === "Escape") setEditingIdx(null); }} onBlur={() => saveEdit(i)} style={{ flex: 1, padding: "6px 10px", border: "1px solid #c2410c", borderRadius: 4, fontSize: 15, fontFamily: "'Playfair Display', serif", background: "#fff", color: "#1a1a2e", outline: "none", minWidth: 120 }}/>
+              ) : (
+                <div style={{ flex: 1, minWidth: 120 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: "#1a1a2e" }}>{cat}</div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#a8a29e", marginTop: 2 }}>{count} product{count !== 1 ? "s" : ""}</div>
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 6 }}>
+                <button onClick={() => startEdit(i)} style={{ padding: "6px 12px", background: "#fafaf9", border: "1px solid #e7e5e4", borderRadius: 4, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 11, display: "flex", alignItems: "center", gap: 6, color: "#1a1a2e" }}><EditIcon/> Rename</button>
+                <button onClick={() => remove(i)} style={{ padding: "6px 12px", background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b", borderRadius: 4, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 11, display: "flex", alignItems: "center", gap: 6 }}><TrashIcon/> Delete</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ marginTop: 16, padding: 16, background: "#fafaf9", borderRadius: 6, border: "1px solid #e7e5e4", fontSize: 13, color: "#78716c", fontFamily: "'DM Mono', monospace", lineHeight: 1.6 }}>
+        <strong style={{ color: "#1a1a2e" }}>Tips:</strong><br/>• Renaming updates all products automatically<br/>• Deleting moves products to the first remaining category<br/>• Arrows reorder the shop filter bar
+      </div>
+    </div>
+  );
+}
+
+// ==================== SITE TEXT TAB ====================
 function SiteTextTab({ siteText, setSiteText }) {
   const [form, setForm] = useState(siteText);
   const [saved, setSaved] = useState(false);
-
-  const save = () => {
-    setSiteText(form);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
+  const save = () => { setSiteText(form); setSaved(true); setTimeout(() => setSaved(false), 2000); };
 
   return (
     <div>
@@ -670,29 +811,21 @@ function SiteTextTab({ siteText, setSiteText }) {
         <h2 style={{ fontSize: 24, fontWeight: 700 }}>Site Text</h2>
         <button onClick={save} style={{ background: saved ? "#22c55e" : "#c2410c", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "1px", textTransform: "uppercase", fontWeight: 500 }}>{saved ? "✓ Saved" : "Save Changes"}</button>
       </div>
-
       <div style={{ background: "#fff", borderRadius: 8, padding: 24, border: "1px solid #e7e5e4", marginBottom: 16 }}>
         <h3 style={{ fontSize: 16, marginBottom: 16, fontFamily: "'DM Mono', monospace", letterSpacing: "1.5px", textTransform: "uppercase", color: "#c2410c" }}>Hero Section</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <InputField label="Tagline (small text above title)" value={form.heroTagline} onChange={(v) => setForm({...form, heroTagline: v})}/>
+          <InputField label="Tagline" value={form.heroTagline} onChange={(v) => setForm({...form, heroTagline: v})}/>
           <InputField label="Title — Line 1" value={form.heroTitleLine1} onChange={(v) => setForm({...form, heroTitleLine1: v})}/>
           <InputField label="Title — Line 2 (orange italic)" value={form.heroTitleLine2} onChange={(v) => setForm({...form, heroTitleLine2: v})}/>
           <InputField label="Subtitle" value={form.heroSubtitle} onChange={(v) => setForm({...form, heroSubtitle: v})} multiline/>
         </div>
       </div>
-
       <div style={{ background: "#fff", borderRadius: 8, padding: 24, border: "1px solid #e7e5e4", marginBottom: 16 }}>
         <h3 style={{ fontSize: 16, marginBottom: 16, fontFamily: "'DM Mono', monospace", letterSpacing: "1.5px", textTransform: "uppercase", color: "#c2410c" }}>Stat Boxes</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-          {[1,2,3].map(i => (
-            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <InputField label={`Stat ${i} Value`} value={form[`stat${i}Value`]} onChange={(v) => setForm({...form, [`stat${i}Value`]: v})}/>
-              <InputField label={`Stat ${i} Label`} value={form[`stat${i}Label`]} onChange={(v) => setForm({...form, [`stat${i}Label`]: v})}/>
-            </div>
-          ))}
+          {[1,2,3].map(i => (<div key={i} style={{ display: "flex", flexDirection: "column", gap: 8 }}><InputField label={`Stat ${i} Value`} value={form[`stat${i}Value`]} onChange={(v) => setForm({...form, [`stat${i}Value`]: v})}/><InputField label={`Stat ${i} Label`} value={form[`stat${i}Label`]} onChange={(v) => setForm({...form, [`stat${i}Label`]: v})}/></div>))}
         </div>
       </div>
-
       <div style={{ background: "#fff", borderRadius: 8, padding: 24, border: "1px solid #e7e5e4", marginBottom: 16 }}>
         <h3 style={{ fontSize: 16, marginBottom: 16, fontFamily: "'DM Mono', monospace", letterSpacing: "1.5px", textTransform: "uppercase", color: "#c2410c" }}>About Page</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -702,7 +835,6 @@ function SiteTextTab({ siteText, setSiteText }) {
           <InputField label="Paragraph 3" value={form.aboutP3} onChange={(v) => setForm({...form, aboutP3: v})} multiline/>
         </div>
       </div>
-
       <div style={{ background: "#fff", borderRadius: 8, padding: 24, border: "1px solid #e7e5e4" }}>
         <h3 style={{ fontSize: 16, marginBottom: 16, fontFamily: "'DM Mono', monospace", letterSpacing: "1.5px", textTransform: "uppercase", color: "#c2410c" }}>Footer</h3>
         <InputField label="Footer Text" value={form.footerText} onChange={(v) => setForm({...form, footerText: v})}/>
@@ -711,11 +843,11 @@ function SiteTextTab({ siteText, setSiteText }) {
   );
 }
 
+// ==================== FAQ TAB ====================
 function FaqsTab({ faqs, setFaqs }) {
   const update = (idx, field, value) => setFaqs(prev => prev.map((item, i) => i === idx ? {...item, [field]: value} : item));
   const add = () => setFaqs(prev => [...prev, { q: "New question?", a: "Answer goes here." }]);
   const remove = (idx) => { if (confirm("Delete this FAQ?")) setFaqs(prev => prev.filter((_, i) => i !== idx)); };
-
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
@@ -737,6 +869,7 @@ function FaqsTab({ faqs, setFaqs }) {
   );
 }
 
+// ==================== GLOBAL STYLES ====================
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
