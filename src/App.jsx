@@ -56,7 +56,7 @@ const supabase = {
 };
 
 // ==================== CONFIG ====================
-const ADMIN_PASSWORD = "I will become the best 1999";
+const ADMIN_PASSWORD = "Banana990717@";
 const PAYPAL_CLIENT_ID = "Af8uztf1PUW-IwWgMD_zk3Xt81NzInure40RGmFtr9D4IKH65MULCq-QxLrRWdpZx-JqVzTfGQg62AU6";
 const CURRENCY = "AUD";
 const DETAIL_LEVELS = ["Standard", "High", "Ultra"];
